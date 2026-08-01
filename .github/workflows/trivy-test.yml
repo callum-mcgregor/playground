@@ -1,4 +1,4 @@
-name: Trivy Test
+name: Trivy Security Scan for NGINX image
 
 on:
   push:
@@ -6,9 +6,66 @@ on:
       - main
     paths:
       - '**/trivy-test.yml'
+      - 'trivy-testing/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/trivy-test.yml'
+      - 'trivy-testing/**'
+
+env:
+  BUILD_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx-unprivileged-build:${{ github.sha }}"
 
 jobs:
-  trivy-test:
+  build_and_push_container:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+
+      - name: Log in to GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+        run: |
+          echo "$GH_TOKEN" | \
+          docker login ghcr.io \
+            -u "$GH_ACTOR" \
+            --password-stdin
+
+      - name: build Docker image
+        run: |
+          docker build \
+            -t "$BUILD_IMAGE_TAG" \
+            -f trivy-testing/Dockerfile \
+            trivy-testing
+
+      - name: push Docker image
+        run: |
+          docker push "$BUILD_IMAGE_TAG"
+
+  trivy-scan:
+    needs:
+      - build_and_push_container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.72.0
+      
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Download Trivy Vulnerability DB
+        run: trivy image --download-db-only
+
+      - name: Run Trivy scanner
+        run: | 
+          trivy image \
+            --ignore-unfixed --severity CRITICAL,HIGH,MEDIUM \
+            --exit-code 1 \
+            "$BUILD_IMAGE_TAG"

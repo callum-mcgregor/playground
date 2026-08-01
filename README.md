@@ -8,6 +8,6 @@ update info by running `tree -a -I '.git' -L 3` from repo root
 ├── .editorconfig
 ├── .github
 │   └── workflows
-│       └── trivy-test.yml
+│       └── trivy-test.yml # experimenting with trivy for container security scanning
 └── README.md
 ```
