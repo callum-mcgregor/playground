@@ -68,13 +68,19 @@ jobs:
       - name: Download Trivy Vulnerability DB
         run: trivy image --download-db-only
 
-      - name: Run Trivy scanner
+      - name: Run Trivy scan
         run: | 
           trivy image \
           --ignore-unfixed \
           --severity CRITICAL,HIGH,MEDIUM \
+          --output trivy-results.sarif \
           --exit-code 1 \
           "$UNVERIFIED_IMAGE_TAG"
+
+      - name: Upload Trivy results to GitHub
+        uses: github/codeql-action/upload-sarif@codeql-bundle-v2.26.2
+        with:
+          sarif_file: trivy-results.sarif
 
   promote-to-preview:
     needs:
