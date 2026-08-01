@@ -20,8 +20,8 @@ permissions:
   security-events: write # required to write Trivy findings to security events
 
 env:
-  UNVERIFIED_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx-unverified:${{ github.sha }}"
-  PREVIEW_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx-verified:preview-${{ github.sha }}"
+  UNVERIFIED_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx:${{ github.sha }}"
+  PREVIEW_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx:preview-${{ github.sha }}"
 
 jobs:
   build_and_push_unscanned_container:
@@ -78,7 +78,6 @@ jobs:
           "$UNVERIFIED_IMAGE_TAG"
           
       - name: Upload Trivy results to GitHub
-        if: always()
         uses: github/codeql-action/upload-sarif@codeql-bundle-v2.26.2
         with:
           sarif_file: trivy-results.sarif
