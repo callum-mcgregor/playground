@@ -14,11 +14,15 @@ on:
       - '**/trivy-test.yml'
       - 'trivy-testing/**'
 
+permissions:
+  contents: read
+  packages: write # required to push to GHCR
+
 env:
   BUILD_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx-unprivileged-build:${{ github.sha }}"
 
 jobs:
-  build_and_push_container:
+  build_and_push_unscannned_container:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
