@@ -22,7 +22,7 @@ env:
   BUILD_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx-unprivileged-build:${{ github.sha }}"
 
 jobs:
-  build_and_push_unscannned_container:
+  build_and_push_unscanned_container:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -50,7 +50,7 @@ jobs:
 
   trivy-scan:
     needs:
-      - build_and_push_container
+      - build_and_push_unscanned_container
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
