@@ -17,6 +17,7 @@ on:
 permissions:
   contents: read
   packages: write # required to push to GHCR
+  security-events: write # required to write Trivy findings to security events
 
 env:
   UNVERIFIED_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx-unverified:${{ github.sha }}"
@@ -68,20 +69,26 @@ jobs:
       - name: Download Trivy Vulnerability DB
         run: trivy image --download-db-only
 
-      - name: Run Trivy scan
+      - name: Run Trivy & output SARIF
         run: | 
           trivy image \
-          --ignore-unfixed \
           --severity CRITICAL,HIGH,MEDIUM \
+          --format sarif \
           --output trivy-results.sarif \
-          --exit-code 1 \
           "$UNVERIFIED_IMAGE_TAG"
-
+          
       - name: Upload Trivy results to GitHub
         if: always()
         uses: github/codeql-action/upload-sarif@codeql-bundle-v2.26.2
         with:
           sarif_file: trivy-results.sarif
+            
+      - name: Run Trivy & exit if vulnerabilities are found
+        run: | 
+          trivy image \
+          --severity CRITICAL,HIGH,MEDIUM \
+          --exit-code 1 \
+          "$UNVERIFIED_IMAGE_TAG"
 
   promote-to-preview:
     needs:
