@@ -19,7 +19,8 @@ permissions:
   packages: write # required to push to GHCR
 
 env:
-  BUILD_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx-unprivileged-build:${{ github.sha }}"
+  UNVERIFIED_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx-unverified:${{ github.sha }}"
+  PREVIEW_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx-unverified:preview-${{ github.sha }}"
 
 jobs:
   build_and_push_unscanned_container:
@@ -40,13 +41,13 @@ jobs:
       - name: build Docker image
         run: |
           docker build \
-            -t "$BUILD_IMAGE_TAG" \
+            -t "$UNVERIFIED_IMAGE_TAG" \
             -f trivy-testing/Dockerfile \
             trivy-testing
 
       - name: push Docker image
         run: |
-          docker push "$BUILD_IMAGE_TAG"
+          docker push "$UNVERIFIED_IMAGE_TAG"
 
   trivy-scan:
     needs:
@@ -72,4 +73,26 @@ jobs:
           trivy image \
             --ignore-unfixed --severity CRITICAL,HIGH,MEDIUM \
             --exit-code 1 \
-            "$BUILD_IMAGE_TAG"
+            "$UNVERIFIED_IMAGE_TAG"
+
+  promote:
+    needs:
+      - trivy-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+        run: |
+          echo "$GH_TOKEN" | \
+          docker login ghcr.io \
+            -u "$GH_ACTOR" \
+            --password-stdin
+
+      - name: Promote Docker image
+        run: |
+          docker tag "$UNVERIFIED_IMAGE_TAG" "$PREVIEW_IMAGE_TAG"
+          docker push "$PREVIEW_IMAGE_TAG"
