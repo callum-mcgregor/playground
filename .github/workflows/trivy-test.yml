@@ -1,0 +1,12 @@
+name: Trivy Test
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trivy-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
