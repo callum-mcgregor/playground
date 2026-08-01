@@ -71,10 +71,10 @@ jobs:
       - name: Run Trivy scanner
         run: | 
           trivy image \
-            # --ignore-unfixed \ # try to find a vulnerability for testing
-            --severity CRITICAL,HIGH,MEDIUM,LOW \
-            --exit-code 1 \
-            "$UNVERIFIED_IMAGE_TAG"
+          --severity CRITICAL,HIGH,MEDIUM,LOW \
+          --exit-code 1 \
+          "$UNVERIFIED_IMAGE_TAG"
+          # --ignore-unfixed \ # try to find a vulnerability for testing
 
   promote-to-preview:
     needs:
