@@ -20,7 +20,7 @@ permissions:
 
 env:
   UNVERIFIED_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx-unverified:${{ github.sha }}"
-  PREVIEW_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx:preview-${{ github.sha }}"
+  PREVIEW_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx-verified:preview-${{ github.sha }}"
 
 jobs:
   build_and_push_unscanned_container:
@@ -71,7 +71,8 @@ jobs:
       - name: Run Trivy scanner
         run: | 
           trivy image \
-            --ignore-unfixed --severity CRITICAL,HIGH,MEDIUM \
+            # --ignore-unfixed \ # try to find a vulnerability for testing
+            --severity CRITICAL,HIGH,MEDIUM,LOW \
             --exit-code 1 \
             "$UNVERIFIED_IMAGE_TAG"
 
