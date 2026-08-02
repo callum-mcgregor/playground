@@ -87,9 +87,18 @@ jobs:
           sarif_file: trivy-results.sarif
           category: nginx-webserver
 
+      - name: Write Trivy summary
+        if: always()
+        run: |
+          echo "## Trivy Container Scan" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Image: \`$UNVERIFIED_IMAGE_TAG\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Results uploaded to GitHub Security" >> "$GITHUB_STEP_SUMMARY"
       - name: Fail workflow if vulnerabilities were found
         if: steps.trivy-scan.outcome == 'failure'
-        run: exit 1
+        run: |
+          echo "::warning:: Trivy found vulnerabilities in the image. Promotion blocked."
+          exit 1
 
   promote-to-preview:
     needs:
