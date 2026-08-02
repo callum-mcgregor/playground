@@ -90,7 +90,7 @@ jobs:
       - name: Write Trivy summary
         if: always()
         env:
-          SCAN_RESULT: "${{ steps.trivy-scan.outcome }} == 'failure' && 'FAIL - vulnerabilities present in scan' || 'PASS - no vulnerabilities present in scan'"
+          SCAN_RESULT: "${{ steps.trivy-scan.outcome == 'failure' && 'FAIL - vulnerabilities present in scan' || 'PASS - no vulnerabilities present in scan' }}"
         run: |
           echo "## Trivy Container Scan" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
