@@ -89,11 +89,15 @@ jobs:
 
       - name: Write Trivy summary
         if: always()
+        env:
+          SCAN_STEP_STATUS: ${{ steps.trivy-scan.outcome }}
         run: |
           echo "## Trivy Container Scan" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Image: \`$UNVERIFIED_IMAGE_TAG\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "Results uploaded to GitHub Security" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Scan result: $SCAN_STEP_STATUS" >> "$GITHUB_STEP_SUMMARY"
+          echo "Image: \`$UNVERIFIED_IMAGE_TAG\` " >> "$GITHUB_STEP_SUMMARY"
+          echo "Review findings in the GitHub Security tab." >> "$GITHUB_STEP_SUMMARY"
+          
       - name: Fail workflow if vulnerabilities were found
         if: steps.trivy-scan.outcome == 'failure'
         run: |
