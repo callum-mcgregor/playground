@@ -81,6 +81,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@codeql-bundle-v2.26.2
         with:
           sarif_file: trivy-results.sarif
+          category: webserver
             
       - name: Run Trivy & exit if vulnerabilities are found
         run: | 
