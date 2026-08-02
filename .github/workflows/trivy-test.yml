@@ -70,25 +70,26 @@ jobs:
         run: trivy image --download-db-only
 
       - name: Run Trivy & output SARIF
+        id: trivy-scan
+        continue-on-error: true
         run: | 
           trivy image \
+          --exit-code 1 \
           --severity CRITICAL,HIGH,MEDIUM \
           --format sarif \
           --output trivy-results.sarif \
           "$UNVERIFIED_IMAGE_TAG"
           
       - name: Upload Trivy results to GitHub
+        if: always()
         uses: github/codeql-action/upload-sarif@codeql-bundle-v2.26.2
         with:
           sarif_file: trivy-results.sarif
           category: webserver
-            
-      - name: Run Trivy & exit if vulnerabilities are found
-        run: | 
-          trivy image \
-          --severity CRITICAL,HIGH,MEDIUM \
-          --exit-code 1 \
-          "$UNVERIFIED_IMAGE_TAG"
+
+      - name: Fail workflow if vulnerabilities were found
+        if: steps.trivy-scan.outcome == 'failure'
+        run: exit 1
 
   promote-to-preview:
     needs:
