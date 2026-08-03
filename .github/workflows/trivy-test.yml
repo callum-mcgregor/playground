@@ -1,7 +1,8 @@
 name: Trivy Security Scan for NGINX image
 
 on:
-  # trigger on pushes to main for easy testing
+  # trigger on pushes to main for easy testing. in reality
+  # i'd probably only have this trigger from PRs against main
   push:
     branches:
       - main
@@ -130,3 +131,17 @@ jobs:
         run: |
           docker tag "$UNVERIFIED_IMAGE_TAG" "$PREVIEW_IMAGE_TAG"
           docker push "$PREVIEW_IMAGE_TAG"
+
+      - name: Deploy to preview
+        env: 
+          # here i'd use the branch name to construct a suffix to make resources unique
+          # i.e., each resource in the terraform would use the below var in its name
+          TF_VAR_deployment_suffix: 
+          # and here i'd pass the image tag e.g., to the ECS task def to deploy the correct image
+          TF_VAR_image_tag: ${{ env.PREVIEW_IMAGE_TAG }}
+        run: |
+          # here I would deploy a set of ephemeral infrastructure to host
+          # a preview/dev application with Terraform. Given the Trivy scan is very quick
+          # i'm not too worried about running this at the end of the workflow (as opposed
+          # to creating the infra ASAP to avoid wasting time)
+          echo "Pretending to deploy to preview"
