@@ -68,6 +68,9 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
+      - name: Generate SBOM
+        run: trivy image --format cyclonedx --output sbom.cdx.json "$UNVERIFIED_IMAGE_TAG" && ls -la | grep sbom
+
       - name: Download Trivy Vulnerability DB
         run: trivy image --download-db-only
 
