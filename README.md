@@ -17,7 +17,7 @@ What you (the reader) can't see, is that these findings are also uploaded to my 
 
 Useful docs: https://docs.semgrep.dev/deployment/add-semgrep-to-ci#supported-ci-providers, https://docs.semgrep.dev/cli-reference#differences-between-semgrep-ci-and-semgrep-scan, https://docs.semgrep.dev/deployment/create-account-and-orgs
 
-### Trivy Testing
+#### `trivy-test.yml`
 I wanted to explore the Trivy tool for scanning Docker images for vulnerabilities. The `.github/workflows/trivy-test.yml` workflow does the following:
 * builds one of two NGINX images and pushes it to the GitHub Container Registry tagged with the commit SHA
 * runs a Trivy scan against the image
