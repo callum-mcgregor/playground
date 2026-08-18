@@ -68,9 +68,10 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
+        
       - name: Download Trivy Vulnerability DB
         run: trivy image --download-db-only
-
+        
       - name: Run Trivy & output SARIF
         id: trivy-scan
         continue-on-error: true
@@ -105,6 +106,15 @@ jobs:
         run: |
           echo "::warning:: Trivy found vulnerabilities in the image. Promotion blocked."
           exit 1
+          
+      - name: Generate SBOM
+        run: trivy image --format cyclonedx --output sbom.cdx.json "$UNVERIFIED_IMAGE_TAG"
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom
+          path: sbom.cdx.json
 
   promote-to-preview:
     needs:
