@@ -1,4 +1,4 @@
-name: Trivy Security Scan for NGINX image
+name: Trivy Example
 
 on:
   # trigger on pushes to main for easy testing. in reality
