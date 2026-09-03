@@ -22,51 +22,26 @@ permissions:
   security-events: write # required to write Trivy findings to security events
 
 env:
-  UNVERIFIED_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx:${{ github.sha }}"
   PREVIEW_IMAGE_TAG: "ghcr.io/callum-mcgregor/nginx:preview-${{ github.sha }}"
 
 jobs:
-  build_and_push_unscanned_container:
+  build_scan_push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-
-      - name: Log in to GHCR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_ACTOR: ${{ github.actor }}
-        run: |
-          echo "$GH_TOKEN" | \
-          docker login ghcr.io \
-            -u "$GH_ACTOR" \
-            --password-stdin
 
       - name: build Docker image
         run: |
           docker build \
-            -t "$UNVERIFIED_IMAGE_TAG" \
+            -t "$PREVIEW_IMAGE_TAG" \
             -f trivy-testing/Dockerfile \
             trivy-testing
-
-      - name: push Docker image
-        run: |
-          docker push "$UNVERIFIED_IMAGE_TAG"
-
-  trivy-scan:
-    needs:
-      - build_and_push_unscanned_container
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
 
       - name: Install Trivy
         run: |
           sudo apt-get update
           sudo apt-get install -y curl
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.72.0
-      
-      - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Download Trivy Vulnerability DB
         run: trivy image --download-db-only
@@ -103,15 +78,8 @@ jobs:
       - name: Fail workflow if vulnerabilities were found
         if: steps.trivy-scan.outcome == 'failure'
         run: |
-          echo "::warning:: Trivy found vulnerabilities in the image. Promotion blocked."
+          echo "::warning:: Trivy found vulnerabilities in the image. Image push blocked."
           exit 1
-
-  promote-to-preview:
-    needs:
-      - trivy-scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
 
       - name: Log in to GHCR
         env:
@@ -123,13 +91,8 @@ jobs:
             -u "$GH_ACTOR" \
             --password-stdin
 
-      - name: Pull Docker image
+      - name: Push Docker image
         run: |
-          docker pull "$UNVERIFIED_IMAGE_TAG"
-
-      - name: Promote Docker image
-        run: |
-          docker tag "$UNVERIFIED_IMAGE_TAG" "$PREVIEW_IMAGE_TAG"
           docker push "$PREVIEW_IMAGE_TAG"
 
       - name: Deploy to preview
