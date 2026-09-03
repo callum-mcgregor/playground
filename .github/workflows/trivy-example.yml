@@ -7,13 +7,13 @@ on:
     branches:
       - main
     paths:
-      - '**/trivy-test.yml'
+      - '**/trivy-example.yml'
       - 'trivy-testing/**'
   pull_request:
     branches:
       - main
     paths:
-      - '**/trivy-test.yml'
+      - '**/trivy-example.yml'
       - 'trivy-testing/**'
 
 permissions:
