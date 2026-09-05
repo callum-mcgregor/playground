@@ -38,10 +38,12 @@ jobs:
             trivy-testing
 
       - name: Install Trivy
+        env:
+          TRIVY_VERSION: v0.72.0
         run: |
           sudo apt-get update
           sudo apt-get install -y curl
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.72.0
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin "$TRIVY_VERSION"
 
       - name: Download Trivy Vulnerability DB
         run: trivy image --download-db-only
