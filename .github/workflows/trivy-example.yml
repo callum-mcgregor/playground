@@ -62,9 +62,10 @@ jobs:
 
       - name: Convert Trivy results to table and SARIF, report findings to Step Summary and Security tab
         if: always()
+        env:
+          TRIVY_OUTCOME: ${{ steps.trivy-scan.outcome }}
         run: |
-          cat trivy-results.json
-          if [[ -s "trivy-results.json" ]]; then
+          if [[ "$TRIVY_OUTCOME" == "failure" ]]; then
             echo '```json' >> "$GITHUB_STEP_SUMMARY"
             trivy convert --format table trivy-results.json | tee -a "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
