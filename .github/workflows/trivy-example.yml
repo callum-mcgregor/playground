@@ -65,11 +65,11 @@ jobs:
         env:
           TRIVY_OUTCOME: ${{ steps.trivy-scan.outcome }}
         run: |
+          trivy convert --format sarif --output trivy-results.sarif trivy-results.json
           if [[ "$TRIVY_OUTCOME" == "failure" ]]; then
             echo '```json' >> "$GITHUB_STEP_SUMMARY"
             trivy convert --format table trivy-results.json | tee -a "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
-            trivy convert --format sarif --output trivy-results.sarif trivy-results.json
           else
             echo "## Trivy Container Scan" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
