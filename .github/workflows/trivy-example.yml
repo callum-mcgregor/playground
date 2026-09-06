@@ -60,13 +60,21 @@ jobs:
             --output trivy-results.json \
             "$PREVIEW_IMAGE_TAG"
 
-      - name: Convert Trivy results to table and SARIF
+      - name: Convert Trivy results to table and SARIF, report findings to Step Summary and Security tab
         if: always()
         run: |
-          echo '```json' >> "$GITHUB_STEP_SUMMARY"
-          trivy convert --format table trivy-results.json | tee -a "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          trivy convert --format sarif --output trivy-results.sarif trivy-results.json
+          if [[ -s "trivy-results.json" ]]; then
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            trivy convert --format table trivy-results.json | tee -a "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            trivy convert --format sarif --output trivy-results.sarif trivy-results.json
+          else
+            echo "## Trivy Container Scan" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### Scan result: No vulnerabilities found" >> "$GITHUB_STEP_SUMMARY"
+            echo "Image: \`$PREVIEW_IMAGE_TAG\` " >> "$GITHUB_STEP_SUMMARY"
+            echo "Continuing with deployment." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload Trivy results to GitHub
         if: always()
@@ -74,15 +82,6 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
           category: nginx-webserver
-
-      - name: Report no vulnerabilities found
-        if: steps.trivy-scan.outcome == 'success'
-        run: |
-          echo "## Trivy Container Scan" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "### Scan result: No vulnerabilities found" >> "$GITHUB_STEP_SUMMARY"
-          echo "Image: \`$PREVIEW_IMAGE_TAG\` " >> "$GITHUB_STEP_SUMMARY"
-          echo "Continuing with deployment." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail workflow if vulnerabilities were found
         if: steps.trivy-scan.outcome == 'failure'
