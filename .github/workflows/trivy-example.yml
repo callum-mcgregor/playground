@@ -75,16 +75,14 @@ jobs:
           sarif_file: trivy-results.sarif
           category: nginx-webserver
 
-      # - name: Write Trivy summary
-      #   if: always()
-      #   env:
-      #     SCAN_RESULT: "${{ steps.trivy-scan.outcome == 'failure' && 'FAIL - vulnerabilities present in scan' || 'PASS - no vulnerabilities present in scan' }}"
-      #   run: |
-      #     echo "## Trivy Container Scan" >> "$GITHUB_STEP_SUMMARY"
-      #     echo "" >> "$GITHUB_STEP_SUMMARY"
-      #     echo "### Scan result: $SCAN_RESULT" >> "$GITHUB_STEP_SUMMARY"
-      #     echo "Image: \`$PREVIEW_IMAGE_TAG\` " >> "$GITHUB_STEP_SUMMARY"
-      #     echo "Review findings in the GitHub Security tab." >> "$GITHUB_STEP_SUMMARY"
+      - name: Report no vulnerabilities found
+        if: steps.trivy-scan.outcome == 'success'
+        run: |
+          echo "## Trivy Container Scan" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Scan result: No vulnerabilities found" >> "$GITHUB_STEP_SUMMARY"
+          echo "Image: \`$PREVIEW_IMAGE_TAG\` " >> "$GITHUB_STEP_SUMMARY"
+          echo "Continuing with deployment." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail workflow if vulnerabilities were found
         if: steps.trivy-scan.outcome == 'failure'
