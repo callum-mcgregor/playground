@@ -1,11 +1,6 @@
 ## Contributing to this repository
 
 This repository utilises [Release Please](https://github.com/googleapis/release-please) 
-```
-Release Please automates CHANGELOG generation, the creation of GitHub releases, and version bumps for your projects.
-
-It does so by parsing your git history, looking for Conventional Commit messages, and creating release PRs.
-```
 
 Use conventional commit messages: https://www.conventionalcommits.org/en/v1.0.0/
 - To release a patch version (X.Y.Z+1):
